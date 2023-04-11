@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    namespace属性：表示指定哪个mapper的路径
+-->
+<mapper namespace="com.whl.store.mapper.UserMapper">
+    <!--
+        resultMap是定义数据库表字段和对象的属性不一致，做映射
+        id属性：标签给一个映射负责分配一个唯一的ID值
+        type属性：取值是一个类，表示的是数据库中的查询结果与
+        column属性：表示数据库表中的资源名称
+        property属性：表示类中的属性名称
+
+        备注：主键ID不能省略
+    -->
+     <resultMap id="UserEntityMap" type="com.whl.store.entity.User">
+         <id column="uid" property="uid"></id>
+         <result column="is_delete" property="isDelete"></result>
+         <result column="created_User" property="createdUser"></result>
+         <result column="created_time" property="createdTime"></result>
+         <result column="modified_user" property="modifiedUser"></result>
+         <result column="modified_time" property="modifiedTime"></result>
+
+     </resultMap>
+
+    <!--
+        useGeneratedKeys属性：表示开启递增功能
+        keyProperty属性：制定哪个字段递增
+    -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="uid">
+        insert into t_user (
+                    username,password,salt,phone,email,gender,avatar,is_delete,
+                    created_user,created_time,modified_user,modified_time
+        ) values (#{username},#{password},#{salt},#{phone},#{email},#{gender},#{avatar},
+                  #{isDelete},#{createdUser},#{createdTime},#{modifiedUser},#{modifiedTime}
+        )
+    </insert>
+
+    <select id="findByUsername" resultMap="UserEntityMap">
+        select * from t_user where username = #{username}
+    </select>
+    
+    <update id="updatePasswordByUid">
+        update t_user set
+            password=#{password},
+            modified_user=#{modifiedUser},
+            modified_time=#{modifiedTime}
+        where uid=#{uid}
+    </update>
+    
+    <select id="findByUid" resultMap="UserEntityMap">
+        select * from t_user where uid=#{uid}
+    </select>
+
+    <update id="updateInfoByUid">
+        update t_user
+        set
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            modified_user = #{modifiedUser},
+            modified_time = #{modifiedTime}
+        where uid = #{uid}
+    </update>
+
+    <update id="updateAvatarByUid">
+        update t_user
+        set
+            avatar=#{avatar},
+            modified_user=#{modifiedUser},
+            modified_time=#{modifiedTime}
+        where
+            uid = #{uid}
+    </update>
+
+</mapper>

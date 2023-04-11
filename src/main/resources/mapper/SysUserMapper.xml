@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    namespace属性：表示指定哪个mapper的路径
+-->
+<mapper namespace="com.whl.store.mapper.SysUserMapper">
+<!--=============================插入SQL=========================================-->
+<!--    添加用户-->
+    <insert id="addUser" useGeneratedKeys="true" keyProperty="uid">
+        insert into t_sys_users (
+            username,password,salt,status
+        )
+        values (
+            #{username},#{password},#{salt},#{status}
+        )
+    </insert>
+<!--    添加角色-->
+    <insert id="addRole" useGeneratedKeys="true" keyProperty="rid">
+        insert into t_sys_role (
+            title,status
+        )
+        values (
+                #{title},#{status}
+        )
+    </insert>
+<!--    添加用户和角色的关联关系-->
+    <insert id="addUserAndRole" parameterType="java.lang.Integer">
+        insert into t_sys_users_role (
+            uid,rid
+        )
+        values (
+            #{uid},#{rid}
+        )
+    </insert>
+<!--    添加权限-->
+    <insert id="addPermissions" useGeneratedKeys="true" keyProperty="pid">
+        insert into t_sys_permissions (
+            name,title
+        )
+        values (
+            #{name},#{title}
+        )
+    </insert>
+<!--    添加角色和权限的关联关系-->
+    <insert id="addRoleAndPermissions" parameterType="java.lang.Integer">
+        insert into t_sys_role_permissions (
+            rid,pid
+        )
+        values (
+            #{rid},#{pid}
+        )
+    </insert>
+<!--===============================查询SQL============================================-->
+<!--    根据用户名查询用户信息-->
+    <select id="findUserByUsername" parameterType="java.lang.String" resultType="com.whl.store.entity.UserInfo">
+        select * from t_sys_users where username = #{username}
+    </select>
+<!--    根据用户UID查询用户信息-->
+    <select id="findUserByUid" parameterType="java.lang.Integer" resultType="com.whl.store.entity.UserInfo">
+        select * from t_sys_users where uid = #{uid}
+    </select>
+<!--    根据用户ID查询对应的角色ID-->
+    <select id="findUserRoleIdByUid" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select rid from t_sys_users_role where uid = #{uid}
+    </select>
+<!--    根据角色ID查询对应的权限列表信息-->
+    <select id="findRolePermissionsIdByRid" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select pid from t_sys_role_permissions where rid = #{rid}
+    </select>
+<!--&lt;!&ndash;    根据角色ID查询角色名称信息&ndash;&gt;-->
+<!--    <select id="findRoleByRid" parameterType="java.lang.Integer" resultType="com.whl.store.entity.SysRole">-->
+<!--        select * from t_sys_role where rid = #{rid}-->
+<!--    </select>-->
+<!--    根据角色名称查询角色ID信息-->
+    <select id="findRoleByRid" parameterType="java.lang.Integer" resultType="com.whl.store.entity.SysRole">
+        select * from t_sys_role where rid = #{rid}
+    </select>
+<!--    根据权限ID列表查询权限码名字-->
+    <select id="findPermissionsNameByPids" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select name from t_sys_permissions where pid in
+        <foreach collection="pids" item="pid" separator="," open="(" close=")">
+            #{pid}
+        </foreach>
+    </select>
+
+<!--    根据用户UID和角色Rid查询用户的关联关系-->
+    <select id="findAllUserRole" resultType="com.whl.store.entity.UserRole">
+        select u.uid,u.username,r.title,u.status from
+            (t_sys_users as u
+                left join
+            t_sys_users_role as ur on u.uid = ur.uid)
+                left join
+            t_sys_role as r on ur.rid = r.rid
+    </select>
+
+<!--    根据用户UID删除角色关联关系-->
+    <delete id="delUserRoleByUid">
+        delete from t_sys_users_role where uid in
+        <foreach collection="uids" item="uid" open="(" close=")" separator=",">#{uid}</foreach>
+    </delete>
+
+<!--    根据用户UID删除用户信息-->
+    <delete id="delUserByUid">
+        delete from t_sys_users where uid in
+        <foreach collection="uids" item="uid" separator="," open="(" close=")">#{uid}</foreach>
+    </delete>
+
+<!--    根据用户名修复用户状态-->
+    <update id="updateUserStatusByUsername">
+        update t_sys_users set status=#{status} where username=#{username}
+    </update>
+
+<!--    根据用户名修改用户密码-->
+    <update id="updateUserPasswordByUsername">
+        update t_sys_users set password=#{password} where username=#{username}
+    </update>
+
+<!--    根据用户UID修改用户角色-->
+    <update id="updateUserRoleByUid">
+        update t_sys_users_role set rid=#{rid} where uid=#{uid}
+    </update>
+
+</mapper>

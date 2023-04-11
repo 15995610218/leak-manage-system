@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    namespace属性：表示指定哪个mapper的路径
+-->
+<mapper namespace="com.whl.store.mapper.KsleakMapper">
+    <!--
+        resultMap是定义数据库表字段和对象的属性不一致，做映射
+        id属性：标签给一个映射负责分配一个唯一的ID值
+        type属性：取值是一个类，表示的是数据库中的查询结果与
+        column属性：表示数据库表中的资源名称
+        property属性：表示类中的属性名称
+    -->
+    <select id="selectAll" resultType="com.whl.store.entity.KsLeak">
+        select * from t_ks_leak
+    </select>
+
+<!--    ksleak分页查询数据的总数-->
+    <select id="selectKsleakTotalMapper" resultType="java.lang.Integer">
+        select count(*) from t_ks_leak
+    </select>
+
+<!--    ksleak分页查询的每页数据-->
+    <select id="selectKsleakPageMapper" resultType="com.whl.store.entity.KsLeak">
+        select * from t_ks_leak limit #{begin},#{size}
+    </select>
+
+    <insert id="insertKsleakByOne" useGeneratedKeys="true" keyProperty="id">
+        insert into t_ks_leak(
+        bugName,cve,releaseDate,threatLevel,bugInformation,systemName,environName,ipAddress,processPerson,deptName,processPlan,processDate,processResult
+        ) values(
+            #{bugName},#{cve},#{releaseDate},#{threatLevel},#{bugInformation},#{systemName},#{environName},#{ipAddress},
+            #{processPerson},#{deptName},#{processPlan},#{processDate},#{processResult}
+            )
+    </insert>
+
+<!--    根据ID修改一个漏洞数据，<set></set>标签解决多余的分隔符问题-->
+    <update id="updateKsleakById">
+        update t_ks_leak
+        <set>
+            <if test="bugName != null">bugName = #{bugName},</if>
+            <if test="cve != null">cve = #{cve},</if>
+            <if test="releaseDate != null">releaseDate = #{releaseDate},</if>
+            <if test="threatLevel != null">threatLevel = #{threatLevel},</if>
+            <if test="bugInformation != null">bugInformation = #{bugInformation},</if>
+            <if test="systemName != null">systemName = #{systemName},</if>
+            <if test="environName != null">environName = #{environName},</if>
+            <if test="ipAddress != null">ipAddress = #{ipAddress},</if>
+            <if test="processPerson != null">processPerson = #{processPerson},</if>
+            <if test="deptName != null">deptName = #{deptName},</if>
+            <if test="processPlan != null">processPlan = #{processPlan},</if>
+            <if test="processDate != null">processDate = #{processDate},</if>
+            <if test="processResult != null">processResult = #{processResult}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+<!--    根据ID删除数据, foreach是循环遍历-->
+    <delete id="deleteKsleakById">
+        delete from t_ks_leak where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">#{id}</foreach>
+    </delete>
+<!--    根据导入文件插入数据库-->
+    <insert id="importksleakmapper" useGeneratedKeys="true" keyProperty="id">
+        insert into t_ks_leak (
+            bugName,cve,releaseDate,threatLevel,bugInformation,systemName,environName,ipAddress,processPerson,deptName,processPlan,processDate,processResult
+        ) values
+        <foreach collection="ksLeaks" item="item" separator="," >
+            (
+            #{item.bugName},#{item.cve},#{item.releaseDate},#{item.threatLevel},#{item.bugInformation},#{item.systemName},#{item.environName},#{item.ipAddress},
+            #{item.processPerson},#{item.deptName},#{item.processPlan},#{item.processDate},#{item.processResult}
+            )
+        </foreach>
+    </insert>
+<!--        <insert id="importksleakmapper" useGeneratedKeys="true" keyProperty="id">-->
+<!--            insert into t_ks_leak (-->
+<!--                bugName,cve,releaseDate,threatLevel,bugInformation,systemName,environName,ipAddress,processPerson,deptName,processPlan,processDate,processResult-->
+<!--            ) values-->
+<!--                (-->
+<!--                #{bugName},#{cve},#{releaseDate},#{threatLevel},#{bugInformation},#{systemName},#{environName},#{ipAddress},-->
+<!--                #{processPerson},#{deptName},#{processPlan},#{processDate},#{processResult}-->
+<!--                )-->
+<!--        </insert>-->
+<!--    根据时间范围导出数据-->
+    <select id="exportExeclByDate" resultType="com.whl.store.entity.KsLeak">
+        select * from t_ks_leak where
+        <if test="beginDate != null and beginDate != ''">
+            <![CDATA[DATE_FORMAT(releaseDate,'%Y-%m-%d') >= #{beginDate}]]>
+        </if>
+        <if test="andDate != null and andDate != ''">
+            <![CDATA[and DATE_FORMAT(releaseDate,'%Y-%m-%d') <= #{andDate}]]>
+        </if>
+    </select>
+<!--根据漏洞名称或CVE编号查询数据，由于是分页查询，需传递分页数据-->
+    <select id="selectSearchDataMapper" resultType="com.whl.store.entity.KsLeak">
+        select * from t_ks_leak
+        <if test="(bugName != null &amp; bugName != '') or (bugCVE != null &amp; bugCVE != '')">where</if>
+        <if test="bugName != null &amp; bugName != ''">bugName = #{bugName}</if>
+        <if test="(bugName != null &amp; bugName != '') and (bugCVE != null &amp; bugCVE != '')">and</if>
+        <if test="bugCVE != null &amp; bugCVE != ''">cve = #{bugCVE}</if>
+        limit #{currectPage},#{sizePage}
+    </select>
+<!--根据漏洞名称或CVE编号查询漏洞总数-->
+    <select id="selectSearchtotalmapper" resultType="java.lang.Integer">
+        select count(*) from t_ks_leak
+        <if test="(bugName != null &amp; bugName != '') or (bugCVE != null &amp; bugCVE != '')">where</if>
+        <if test="bugName != null &amp; bugName != ''">bugName = #{bugName}</if>
+        <if test="(bugName != null &amp; bugName != '') and (bugCVE != null &amp; bugCVE != '')">and</if>
+        <if test="bugCVE != null &amp; bugCVE != ''">cve = #{bugCVE}</if>
+    </select>
+</mapper>
