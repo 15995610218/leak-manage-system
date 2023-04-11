@@ -1,2 +1,3 @@
 # leak-manage-system
-information security system (springboot+mybatis+shiro+jwt+redis)
+后台 (springboot+mybatis+shiro+jwt+redis)
+前台 vue
